@@ -19,7 +19,7 @@ DEPENDENCY_TARGETS=hiredis linenoise lua
 
 # Default settings
 STD=-std=c99 -pedantic
-WARN=-Wall -W
+WARN=-Wall -W -Wunused-parameter
 OPT=$(OPTIMIZATION)
 
 PREFIX?=/usr/local
@@ -49,7 +49,7 @@ endif
 # Override default settings if possible
 -include .make-settings
 
-FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS)
+FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS) -D_POSIX_C_SOURCE=199309
 FINAL_LDFLAGS=$(LDFLAGS) $(REDIS_LDFLAGS) $(DEBUG)
 FINAL_LIBS=-lm
 DEBUG=-g -ggdb
@@ -58,7 +58,7 @@ ifeq ($(uname_S),SunOS)
 	# SunOS
 	INSTALL=cp -pf
 	FINAL_CFLAGS+= -D__EXTENSIONS__ -D_XPG6
-	FINAL_LIBS+= -ldl -lnsl -lsocket -lresolv -lpthread -lrt
+	FINAL_LIBS+= -ldl -lnsl -lsocket -lresolv -lpthread -lrt -lzookeeper_mt -lrt
 else
 ifeq ($(uname_S),Darwin)
 	# Darwin (nothing to do)
@@ -66,12 +66,12 @@ else
 ifeq ($(uname_S),AIX)
         # AIX
         FINAL_LDFLAGS+= -Wl,-bexpall
-        FINAL_LIBS+= -pthread -lcrypt -lbsd
+        FINAL_LIBS+= -pthread -lcrypt -lbsd -lzookeeper_mt -lrt
 
 else
 	# All the other OSes (notably Linux)
 	FINAL_LDFLAGS+= -rdynamic
-	FINAL_LIBS+= -pthread
+	FINAL_LIBS+= -pthread -lzookeeper_mt -lrt
 endif
 endif
 endif
@@ -113,7 +113,7 @@ endif
 
 REDIS_SERVER_NAME=redis-server
 REDIS_SENTINEL_NAME=redis-sentinel
-REDIS_SERVER_OBJ=adlist.o ae.o anet.o dict.o redis.o sds.o zmalloc.o lzf_c.o lzf_d.o pqsort.o zipmap.o sha1.o ziplist.o release.o networking.o util.o object.o db.o replication.o rdb.o t_string.o t_list.o t_set.o t_zset.o t_hash.o config.o aof.o pubsub.o multi.o debug.o sort.o intset.o syncio.o cluster.o crc16.o endianconv.o slowlog.o scripting.o bio.o rio.o rand.o memtest.o crc64.o bitops.o sentinel.o notify.o setproctitle.o blocked.o hyperloglog.o latency.o sparkline.o
+REDIS_SERVER_OBJ=adlist.o ae.o anet.o dict.o redis.o sds.o zmalloc.o lzf_c.o lzf_d.o pqsort.o zipmap.o sha1.o ziplist.o release.o networking.o util.o object.o db.o replication.o rdb.o t_string.o t_list.o t_set.o t_zset.o t_hash.o config.o aof.o pubsub.o multi.o debug.o sort.o intset.o syncio.o cluster.o crc16.o endianconv.o slowlog.o scripting.o bio.o rio.o rand.o memtest.o crc64.o bitops.o sentinel.o notify.o setproctitle.o blocked.o hyperloglog.o latency.o sparkline.o zk_util.o
 REDIS_CLI_NAME=redis-cli
 REDIS_CLI_OBJ=anet.o sds.o adlist.o redis-cli.o zmalloc.o release.o anet.o ae.o crc64.o
 REDIS_BENCHMARK_NAME=redis-benchmark
