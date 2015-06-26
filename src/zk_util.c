@@ -69,7 +69,6 @@ int init_zkc_connection_tm(zookeeper_client * zkc_ptr,
 }
 
 int free_zookeeper_client(zookeeper_client * zkc_ptr) {
-  int ret_code = -1;
   /** automatically blocks until a session has been set up successfully. */
   free(zkc_ptr->zk_conn_str);
   free(zkc_ptr->root_path);
@@ -77,7 +76,7 @@ int free_zookeeper_client(zookeeper_client * zkc_ptr) {
   pthread_mutex_destroy(&(zkc_ptr->zk_mutex));
   pthread_cond_destroy(&(zkc_ptr->cond_var));
   free(zkc_ptr);
-  return ret_code;
+  return 0;
 }
 
 int batch_delete_atomic(zookeeper_client * zkc_ptr,
@@ -115,7 +114,10 @@ int batch_delete_atomic(zookeeper_client * zkc_ptr,
       zoo_delete_op_init(&ops_set[i], revr_nodes_todel[i], -1);
     } /** end of for **/
     int rval = zoo_multi(zkc_ptr->zk_ptr, node_cnt, ops_set, ret_set);
-    if ((int)ZOK == rval) { ret_code = 0; }
+    if ((int)ZOK == rval) {
+fprintf(stderr, "del: %s", revr_nodes_todel[0]);
+      ret_code = 0;
+    }
 
     free(ret_set);
     free(ops_set);
@@ -180,13 +182,13 @@ int batch_create_atomic(zookeeper_client * zkc_ptr, char ** path_arr,
 
 int allocate_and_copy_str_tm(char ** dest, char * src, int limit)
 {
-  int ret_code = -1, src_len = strlen(src);
-  if (NULL == dest || NULL == src || limit < src_len) { return ret_code; }
-  return ret_code;
+  int src_len = strlen(src);
+  if (NULL == dest || NULL == src || limit < src_len) { return -1; }
   * dest = (char * )malloc(src_len + 1);
   assert(NULL != * dest);
   memset(* dest, 0, src_len + 1);
   strncpy(* dest, src, src_len);
+  return 0;
 } 
 
 int allocate_and_copy_str(char ** dest, char * src) {
@@ -227,14 +229,15 @@ int create_hb_node(zookeeper_client * zkc_ptr, const char * root_path,
 
   char path_str[MAX_PATH_LEN];
   memset(path_str, 0, sizeof(path_str));
-  sprintf("%s%s", root_path, DEF_INSTANCE_HB_PREFIX);
+  sprintf(path_str, "%s%s", root_path, DEF_INSTANCE_HB_PREFIX);
 
   * path_created = (char*)malloc(sizeof(char) * MAX_PATH_LEN);
-  memset(path_created, 0, MAX_PATH_LEN);
+  memset(* path_created, 0, MAX_PATH_LEN);
 
   int ret_val = zoo_create(
     zkc_ptr->zk_ptr, path_str, data_str, strlen(data_str),
-    &ZOO_OPEN_ACL_UNSAFE, ZOO_EPHEMERAL, * path_created, MAX_PATH_LEN
+    &ZOO_OPEN_ACL_UNSAFE, ZOO_EPHEMERAL | ZOO_SEQUENCE,
+    * path_created, MAX_PATH_LEN
   ); 
   if (ZOK == ret_val) { ret_code = 0; }
   return ret_code;
@@ -285,6 +288,7 @@ char * get_ip_addr_v4_lan() {
       break;
     }
   }
+fprintf (stderr, "==>> %s", local_ip);
   return local_ip;
 }
 

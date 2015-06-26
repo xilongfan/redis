@@ -63,6 +63,9 @@ typedef long long mstime_t; /* millisecond time type. */
 #include "latency.h" /* Latency monitor API */
 #include "sparkline.h" /* ASII graphs API */
 
+#include "./zk_util.h"
+
+
 /* Error codes */
 #define REDIS_OK                0
 #define REDIS_ERR               -1
@@ -908,6 +911,7 @@ struct redisServer {
     char * zookeeper_endpoint;
     char * zookeeper_rootpath;
     char * zookeeper_hb_node;
+    zookeeper_client * zkc_client;
 };
 
 typedef struct pubsubPattern {

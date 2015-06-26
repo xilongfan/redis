@@ -53,8 +53,6 @@
 #include <sys/utsname.h>
 #include <locale.h>
 
-#include "./zk_util.h"
-
 /* Our shared "common" objects */
 
 struct sharedObjectsStruct shared;
@@ -2373,6 +2371,10 @@ int prepareForShutdown(int flags) {
     }
     /* Close the listening sockets. Apparently this allows faster restarts. */
     closeListeningSockets(1);
+
+    int ret = cancel_server_instance(server.zkc_client, server.zookeeper_hb_node);
+    redisLog(REDIS_WARNING,"Removing Zookeeper Registry %s, %d", server.zookeeper_hb_node, ret);
+
     redisLog(REDIS_WARNING,"%s is now ready to exit, bye bye...",
         server.sentinel_mode ? "Sentinel" : "Redis");
     return REDIS_OK;
@@ -3666,10 +3668,6 @@ int main(int argc, char **argv) {
         if (configfile) server.configfile = getAbsolutePath(configfile);
         resetServerSaveParams();
         loadServerConfig(configfile,options);
-        register_server_instance(
-          zkc_client, server.zookeeper_endpoint, server.zookeeper_rootpath,
-          &(server.zookeeper_hb_node), server.port
-        );
         sdsfree(options);
     } else {
         redisLog(REDIS_WARNING, "Warning: no config file specified, using the default config. In order to specify a config file use %s /path/to/%s.conf", argv[0], server.sentinel_mode ? "sentinel" : "redis");
@@ -3679,6 +3677,12 @@ int main(int argc, char **argv) {
     if (server.daemonize) createPidFile();
     redisSetProcTitle(argv[0]);
     redisAsciiArt();
+
+    register_server_instance(
+      zkc_client, server.zookeeper_endpoint, server.zookeeper_rootpath,
+      &(server.zookeeper_hb_node), server.port
+    );
+    server.zkc_client = zkc_client;
 
     if (!server.sentinel_mode) {
         /* Things not needed when running in Sentinel mode. */
@@ -3713,8 +3717,6 @@ int main(int argc, char **argv) {
     aeSetBeforeSleepProc(server.el,beforeSleep);
     aeMain(server.el);
     aeDeleteEventLoop(server.el);
-
-    cancel_server_instance(zkc_client, server.zookeeper_hb_node);
 
     return 0;
 }
