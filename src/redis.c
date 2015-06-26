@@ -288,6 +288,27 @@ struct redisCommand redisCommandTable[] = {
 
 struct evictionPoolEntry *evictionPoolAlloc(void);
 
+int register_server_instance(zookeeper_client * zkc_ptr,
+                             const char * conn_str, const char * root_str,
+                             char ** path_created, int port) {
+   int ret_val = -1;
+   if (NULL == zkc_ptr) { return ret_val; }
+   ret_val = init_zkc_connection(zkc_ptr, conn_str, root_str);
+   if (0 != ret_val) { return ret_val; }
+   char host_buf[256];
+   memset(host_buf, 0, sizeof(host_buf));
+   sprintf(host_buf, "%s:%d", get_ip_addr_v4_lan(), port);
+   return create_hb_node(zkc_ptr, root_str, host_buf, path_created);
+}
+
+int cancel_server_instance(zookeeper_client * zkc_ptr, char * zookeeper_hb_node)
+{
+   char * path_arr[1];
+   path_arr[0] = zookeeper_hb_node;
+   batch_delete_atomic(zkc_ptr, path_arr, 1);
+   return free_zookeeper_client(zkc_ptr);
+}
+
 /*============================ Utility functions ============================ */
 
 /* Low level logging. To use only for very big messages, otherwise
@@ -3569,27 +3590,6 @@ void redisSetProcTitle(char *title) {
 #else
     REDIS_NOTUSED(title);
 #endif
-}
-
-int register_server_instance(zookeeper_client * zkc_ptr,
-                             const char * conn_str, const char * root_str,
-                             char ** path_created, int port) {
-   int ret_val = -1;
-   if (NULL == zkc_ptr) { return ret_val; }
-   ret_val = init_zkc_connection(zkc_ptr, conn_str, root_str);
-   if (0 != ret_val) { return ret_val; }
-   char host_buf[256];
-   memset(host_buf, 0, sizeof(host_buf));
-   sprintf(host_buf, "%s:%d", get_ip_addr_v4_lan(), port);
-   return create_hb_node(zkc_ptr, root_str, host_buf, path_created);
-}
-
-int cancel_server_instance(zookeeper_client * zkc_ptr, char * zookeeper_hb_node)
-{
-   char * path_arr[1];
-   path_arr[0] = zookeeper_hb_node;
-   batch_delete_atomic(zkc_ptr, path_arr, 1);
-   return free_zookeeper_client(zkc_ptr);
 }
 
 int main(int argc, char **argv) {
