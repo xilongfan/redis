@@ -53,6 +53,8 @@
 #include <sys/utsname.h>
 #include <locale.h>
 
+#include "./zk_util.h"
+
 /* Our shared "common" objects */
 
 struct sharedObjectsStruct shared;
@@ -3567,8 +3569,30 @@ void redisSetProcTitle(char *title) {
 #endif
 }
 
+int register_server_instance(zookeeper_client * zkc_ptr,
+                             const char * conn_str, const char * root_str,
+                             char ** path_created, int port) {
+   int ret_val = -1;
+   if (NULL == zkc_ptr) { return ret_val; }
+   ret_val = init_zkc_connection(zkc_ptr, conn_str, root_str);
+   if (0 != ret_val) { return ret_val; }
+   char host_buf[256];
+   memset(host_buf, 0, sizeof(host_buf));
+   sprintf(host_buf, "%s:%d", get_ip_addr_v4_lan(), port);
+   return create_hb_node(zkc_ptr, root_str, host_buf, path_created);
+}
+
+int cancel_server_instance(zookeeper_client * zkc_ptr, char * zookeeper_hb_node)
+{
+   char * path_arr[1];
+   path_arr[0] = zookeeper_hb_node;
+   batch_delete_atomic(zkc_ptr, path_arr, 1);
+   return free_zookeeper_client(zkc_ptr);
+}
+
 int main(int argc, char **argv) {
     struct timeval tv;
+    zookeeper_client * zkc_client = create_zookeeper_client();
 
     /* We need to initialize our libraries, and the server configuration. */
 #ifdef INIT_SETPROCTITLE_REPLACEMENT
@@ -3642,6 +3666,10 @@ int main(int argc, char **argv) {
         if (configfile) server.configfile = getAbsolutePath(configfile);
         resetServerSaveParams();
         loadServerConfig(configfile,options);
+        register_server_instance(
+          zkc_client, server.zookeeper_endpoint, server.zookeeper_rootpath,
+          &(server.zookeeper_hb_node), server.port
+        );
         sdsfree(options);
     } else {
         redisLog(REDIS_WARNING, "Warning: no config file specified, using the default config. In order to specify a config file use %s /path/to/%s.conf", argv[0], server.sentinel_mode ? "sentinel" : "redis");
@@ -3685,6 +3713,9 @@ int main(int argc, char **argv) {
     aeSetBeforeSleepProc(server.el,beforeSleep);
     aeMain(server.el);
     aeDeleteEventLoop(server.el);
+
+    cancel_server_instance(zkc_client, server.zookeeper_hb_node);
+
     return 0;
 }
 

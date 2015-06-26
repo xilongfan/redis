@@ -27,6 +27,7 @@ static const int MAX_STR_VAL_SIZE = 1023;
 static const int MAX_BATCH_CHUNK = 512;
 static const int MAX_PATH_LEN = 512;
 static char * const ELECTION_NODE_INV_IP_V4 = "127.0.0.1";
+static char * const DEF_INSTANCE_HB_PREFIX = "/redis-inst/redis-";
 
 typedef struct zookeeper_client_st {
   zhandle_t * zk_ptr;
@@ -60,13 +61,13 @@ extern int create_hb_node(zookeeper_client * zkc_ptr,
                           const char * path_str, const char * data_str,
                           char ** path_created);
 
-static int allocate_and_copy_str_tm(char ** dest, char * src, int limit);
-static int allocate_and_copy_str(char ** dest, char * src);
+int allocate_and_copy_str_tm(char ** dest, char * src, int limit);
+int allocate_and_copy_str(char ** dest, char * src);
 
-static int vstrcmp(const void * l_str, const void * r_str);
-static void sort_child_nodes_arr(struct String_vector * child_nodes_arr);
-static char * get_ip_addr_v4_lan();
-static void zk_init_callback(zhandle_t *, int type, int state,
-                             const char * path, void * zk_proxy_ptr);
+int vstrcmp(const void * l_str, const void * r_str);
+void sort_child_nodes_arr(struct String_vector * child_nodes_arr);
+char * get_ip_addr_v4_lan();
+void zk_init_callback(zhandle_t *, int type, int state,
+                      const char * path, void * zk_proxy_ptr);
 
 #endif

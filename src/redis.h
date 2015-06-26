@@ -907,6 +907,7 @@ struct redisServer {
 
     char * zookeeper_endpoint;
     char * zookeeper_rootpath;
+    char * zookeeper_hb_node;
 };
 
 typedef struct pubsubPattern {

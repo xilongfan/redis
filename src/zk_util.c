@@ -178,7 +178,7 @@ int batch_create_atomic(zookeeper_client * zkc_ptr, char ** path_arr,
   return ret_code;
 }
 
-static int allocate_and_copy_str_tm(char ** dest, char * src, int limit)
+int allocate_and_copy_str_tm(char ** dest, char * src, int limit)
 {
   int ret_code = -1, src_len = strlen(src);
   if (NULL == dest || NULL == src || limit < src_len) { return ret_code; }
@@ -189,7 +189,7 @@ static int allocate_and_copy_str_tm(char ** dest, char * src, int limit)
   strncpy(* dest, src, src_len);
 } 
 
-static int allocate_and_copy_str(char ** dest, char * src) {
+int allocate_and_copy_str(char ** dest, char * src) {
   return allocate_and_copy_str_tm(dest, src, MAX_STR_VAL_SIZE);
 }
 
@@ -218,12 +218,16 @@ int get_child_nodes(zookeeper_client * zkc_ptr, char * dir_path,
   return ret_code;
 }
 
-int create_hb_node(zookeeper_client * zkc_ptr, const char * path_str,
+int create_hb_node(zookeeper_client * zkc_ptr, const char * root_path,
                    const char * data_str, char ** path_created) {
   int ret_code = 0;
 
-  assert(NULL != zkc_ptr && NULL != zkc_ptr->zk_ptr && NULL != path_str &&
+  assert(NULL != zkc_ptr && NULL != zkc_ptr->zk_ptr && NULL != root_path &&
          NULL != data_str && NULL != path_created);
+
+  char path_str[MAX_PATH_LEN];
+  memset(path_str, 0, sizeof(path_str));
+  sprintf("%s%s", root_path, DEF_INSTANCE_HB_PREFIX);
 
   * path_created = (char*)malloc(sizeof(char) * MAX_PATH_LEN);
   memset(path_created, 0, MAX_PATH_LEN);
