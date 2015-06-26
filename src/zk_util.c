@@ -3,6 +3,33 @@
 
 #define UNUSED
 
+int batch_get(zookeeper_client * zkc_ptr, char * dir_path,
+              char *** node_arr_ptr, int * node_cnt_ptr) {
+  int ret_code = -1;
+
+  assert(NULL != zkc_ptr && NULL != zkc_ptr->zk_ptr && NULL != node_cnt_ptr &&
+         NULL != node_cnt_ptr && NULL != dir_path);
+  if (0 >= strlen(dir_path)) { return ret_code; }
+  struct String_vector child_nodes_arr;
+  child_nodes_arr.data = NULL;
+  child_nodes_arr.count = 0;
+  int ret_val = zoo_get_children(zkc_ptr->zk_ptr, dir_path, 0, &child_nodes_arr);
+  if (ZOK == ret_val) {
+    sort_child_nodes_arr(&child_nodes_arr);
+    * node_cnt_ptr = child_nodes_arr.count;
+    if (* node_cnt_ptr > 0) {
+      * node_arr_ptr = (char **)malloc(sizeof(char *) * (* node_cnt_ptr));
+      for (int i = 0; i < child_nodes_arr.count; i++) {
+        allocate_and_copy_str(&((*node_arr_ptr)[i]), child_nodes_arr.data[i]);
+      }
+    }
+    ret_code = 0;
+  }
+  deallocate_String_vector(&child_nodes_arr);
+  return ret_code;
+}
+
+
 zookeeper_client * create_zookeeper_client()
 {
   zookeeper_client * zkc_ptr = (zookeeper_client * )malloc(sizeof(zookeeper_client));

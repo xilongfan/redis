@@ -50,6 +50,8 @@ extern int init_zkc_connection(zookeeper_client * zkc_ptr,
                                const char * root_str);
 
 extern int free_zookeeper_client(zookeeper_client * zkc_ptr);
+int batch_get(zookeeper_client * zkc_ptr, char * dir_path,
+              char *** node_arr_ptr, int * node_cnt_ptr);
 extern int batch_delete_atomic(zookeeper_client * zkc_ptr,
                                char ** path_arr, int path_cnt);
 extern int batch_create_atomic(zookeeper_client * zkc_ptr,
