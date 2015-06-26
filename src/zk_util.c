@@ -3,32 +3,20 @@
 
 #define UNUSED
 
-int batch_get(zookeeper_client * zkc_ptr, char * dir_path,
-              char *** node_arr_ptr, int * node_cnt_ptr) {
+extern int get_node_data(zookeeper_client * zkc_ptr, char * node_path, char ** data) {
   int ret_code = -1;
-
-  assert(NULL != zkc_ptr && NULL != zkc_ptr->zk_ptr && NULL != node_cnt_ptr &&
-         NULL != node_cnt_ptr && NULL != dir_path);
-  if (0 >= strlen(dir_path)) { return ret_code; }
-  struct String_vector child_nodes_arr;
-  child_nodes_arr.data = NULL;
-  child_nodes_arr.count = 0;
-  int ret_val = zoo_get_children(zkc_ptr->zk_ptr, dir_path, 0, &child_nodes_arr);
+  if (NULL == zkc_ptr || NULL == zkc_ptr->zk_ptr ||
+      NULL == node_path || NULL == data) { return ret_code; }
+  char data_buf[MAX_ELECTION_NODE_DATA_LEN];
+  memset(data_buf, 0, sizeof(data_buf));
+  int buf_len = sizeof(data_buf);
+  int ret_val = zoo_get(zkc_ptr->zk_ptr, node_path, 0, data_buf, &buf_len, NULL);
   if (ZOK == ret_val) {
-    sort_child_nodes_arr(&child_nodes_arr);
-    * node_cnt_ptr = child_nodes_arr.count;
-    if (* node_cnt_ptr > 0) {
-      * node_arr_ptr = (char **)malloc(sizeof(char *) * (* node_cnt_ptr));
-      for (int i = 0; i < child_nodes_arr.count; i++) {
-        allocate_and_copy_str(&((*node_arr_ptr)[i]), child_nodes_arr.data[i]);
-      }
-    }
+    allocate_and_copy_str(data, data_buf);
     ret_code = 0;
   }
-  deallocate_String_vector(&child_nodes_arr);
   return ret_code;
 }
-
 
 zookeeper_client * create_zookeeper_client()
 {

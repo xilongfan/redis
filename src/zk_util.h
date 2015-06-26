@@ -20,6 +20,7 @@
 #include <fcntl.h>
 
 static const int MAX_ELECTION_NODE_INTERFACES_CNT = 16;
+static const int MAX_ELECTION_NODE_DATA_LEN = 1023;
 static const int MAX_SESSION_TIME_OUT = 50000;
 static const int MAX_COND_WAIT_TIME_OUT = 40;
 static const int CALLBACK_RET_INVALID_VAL = -1;
@@ -50,12 +51,13 @@ extern int init_zkc_connection(zookeeper_client * zkc_ptr,
                                const char * root_str);
 
 extern int free_zookeeper_client(zookeeper_client * zkc_ptr);
-int batch_get(zookeeper_client * zkc_ptr, char * dir_path,
-              char *** node_arr_ptr, int * node_cnt_ptr);
 extern int batch_delete_atomic(zookeeper_client * zkc_ptr,
                                char ** path_arr, int path_cnt);
 extern int batch_create_atomic(zookeeper_client * zkc_ptr,
                                char ** path_arr, char ** data_arr,int path_cnt);
+
+extern int get_node_data(zookeeper_client * zkc_ptr, char * node_path, char ** data);
+
 extern int get_child_nodes(zookeeper_client * zkc_ptr,
                            char * dir_path, char *** node_arr, int * node_cnt);
 
