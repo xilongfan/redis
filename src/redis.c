@@ -3655,6 +3655,7 @@ int main(int argc, char **argv) {
     if (!server.sentinel_mode) {
         /* Things not needed when running in Sentinel mode. */
         redisLog(REDIS_WARNING,"Server started, Redis version " REDIS_VERSION);
+        redisLog(REDIS_WARNING,"Zookeeper Endpoint: %s, Root: %s", server.zookeeper_endpoint, server.zookeeper_rootpath );
     #ifdef __linux__
         linuxMemoryWarnings();
     #endif

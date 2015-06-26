@@ -1,6 +1,8 @@
 #include "./zk_util.h"
 #include <time.h>
 
+#define UNUSED
+
 zookeeper_client * create_zookeeper_client()
 {
   zookeeper_client * zkc_ptr = (zookeeper_client * )malloc(sizeof(zookeeper_client));
@@ -216,8 +218,8 @@ int get_child_nodes(zookeeper_client * zkc_ptr, char * dir_path,
   return ret_code;
 }
 
-int create_node(zookeeper_client * zkc_ptr, const char * path_str, const char * data_str,
-                char ** path_created, int node_flag) {
+int create_hb_node(zookeeper_client * zkc_ptr, const char * path_str,
+                   const char * data_str, char ** path_created) {
   int ret_code = 0;
 
   assert(NULL != zkc_ptr && NULL != zkc_ptr->zk_ptr && NULL != path_str &&
@@ -228,7 +230,7 @@ int create_node(zookeeper_client * zkc_ptr, const char * path_str, const char * 
 
   int ret_val = zoo_create(
     zkc_ptr->zk_ptr, path_str, data_str, strlen(data_str),
-    &ZOO_OPEN_ACL_UNSAFE, node_flag, * path_created, MAX_PATH_LEN
+    &ZOO_OPEN_ACL_UNSAFE, ZOO_EPHEMERAL, * path_created, MAX_PATH_LEN
   ); 
   if (ZOK == ret_val) { ret_code = 0; }
   return ret_code;

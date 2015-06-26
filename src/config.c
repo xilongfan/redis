@@ -540,6 +540,16 @@ void loadServerConfigFromString(char *config) {
                 err = sentinelHandleConfiguration(argv+1,argc-1);
                 if (err) goto loaderr;
             }
+        } else if (!strcasecmp(argv[0],"zookeeper-endpoint") && argc == 2) {
+            server.zookeeper_endpoint = sdsdup(argv[1]);
+            if (NULL == server.zookeeper_endpoint || strlen(server.zookeeper_endpoint) <= 0) {
+                err = "Invalid value for zookeeper-endpoint."; goto loaderr;
+            }
+        } else if (!strcasecmp(argv[0],"zookeeper-rootpath") && argc == 2) {
+            server.zookeeper_rootpath = sdsdup(argv[1]);
+            if (NULL == server.zookeeper_rootpath || strlen(server.zookeeper_rootpath) <= 0) {
+                err = "Invalid value for zookeeper-rootpath."; goto loaderr;
+            }
         } else {
             err = "Bad directive or wrong number of arguments"; goto loaderr;
         }

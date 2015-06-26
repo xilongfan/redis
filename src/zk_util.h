@@ -1,6 +1,9 @@
 #ifndef ZK_UTIL_H_
 #define ZK_UTIL_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <zookeeper/zookeeper.h>
 #include <zookeeper/zookeeper.jute.h>
 #include <assert.h>
@@ -46,13 +49,16 @@ extern int init_zkc_connection(zookeeper_client * zkc_ptr,
                                const char * root_str);
 
 extern int free_zookeeper_client(zookeeper_client * zkc_ptr);
-extern int batch_delete_atomic(zookeeper_client * zkc_ptr, char ** path_arr, int path_cnt);
-extern int batch_create_atomic(zookeeper_client * zkc_ptr, char ** path_arr, char ** data_arr, int path_cnt);
-extern int get_child_nodes(zookeeper_client * zkc_ptr, char * dir_path, char *** node_arr, int * node_cnt_ptr);
+extern int batch_delete_atomic(zookeeper_client * zkc_ptr,
+                               char ** path_arr, int path_cnt);
+extern int batch_create_atomic(zookeeper_client * zkc_ptr,
+                               char ** path_arr, char ** data_arr,int path_cnt);
+extern int get_child_nodes(zookeeper_client * zkc_ptr,
+                           char * dir_path, char *** node_arr, int * node_cnt);
 
-extern int create_node(zookeeper_client * zkc_ptr,
-                       const char * path_str, const char * data_str,
-                       char ** path_created, int node_flag);
+extern int create_hb_node(zookeeper_client * zkc_ptr,
+                          const char * path_str, const char * data_str,
+                          char ** path_created);
 
 static int allocate_and_copy_str_tm(char ** dest, char * src, int limit);
 static int allocate_and_copy_str(char ** dest, char * src);
@@ -60,6 +66,7 @@ static int allocate_and_copy_str(char ** dest, char * src);
 static int vstrcmp(const void * l_str, const void * r_str);
 static void sort_child_nodes_arr(struct String_vector * child_nodes_arr);
 static char * get_ip_addr_v4_lan();
-static void zk_init_callback(zhandle_t *, int type, int state, const char * path, void * zk_proxy_ptr);
+static void zk_init_callback(zhandle_t *, int type, int state,
+                             const char * path, void * zk_proxy_ptr);
 
 #endif
